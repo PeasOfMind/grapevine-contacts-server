@@ -1,27 +1,62 @@
-'use strict';
+"use strict";
 
-const express = require('express');
-const graphqlHTTP = require('express-graphql');
-const contactsSchema = require('./schema.js')
+const express = require("express");
+const mongoose = require("mongoose");
+const morgan = require("morgan");
 
-const morgan = require('morgan');
+mongoose.Promise = global.Promise;
+
+const { PORT, DATABASE_URL } = require("./config");
 
 const app = express();
 
-const PORT = process.env.PORT || 4000;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
+app.use(morgan("common"));
+app.use(express.json());
 
-app.use(morgan('common'));
-
+//CORS
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", CLIENT_ORIGIN);
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
   next();
-})
+});
 
-app.use('/graphql', graphqlHTTP({
-  schema: contactsSchema,
-  graphiql: true
-}));
+let server;
 
-app.listen(PORT, () => console.log(`Running GraphQL server on port ${port}`));
+function runServer(databaseUrl, port = PORT){
+    return new Promise((resolve, reject) => {
+        mongoose.connect(databaseUrl, err => {
+            if(err){
+                return reject(err);
+            }
+            server = app.listen(port, () => {
+                console.log(`Your app is listening on port ${port}`);
+                resolve();
+            })
+            .on('error', err => {
+                mongoose.disconnect();
+                reject(err);
+            });
+        });
+    });
+}
+
+function closeServer(){
+    return mongoose.disconnect().then(() => {
+        return new Promise((resolve, reject) => {
+            console.log('Closing server');
+            server.close(err => {
+                if(err) {
+                    return reject(err);
+                }
+                resolve();
+            })
+        })
+    })
+}
+
+if (require.main === module){
+    runServer(DATABASE_URL).catch(err => console.error(err));
+}
