@@ -16,8 +16,10 @@ router.get("/contacts", (req, res) => {
   })
 });
 
-router.get("/contact/:id", (req, res) => {
-  // get contact by id (Single Profile View)
+router.get("/contacts/:id", (req, res) => {
+  Contact.findById(req.params.id)
+  .then(contact => res.json(contact.serialize()))
+  .catch(() => res.status(404).json({error: 'contact not found'}));
 });
 
 router.get("/search/:string", (req, res) => {
@@ -32,7 +34,7 @@ router.get("/search/:string", (req, res) => {
   // else return none
 });
 
-router.post("/contact", (req, res) => {
+router.post("/contacts", (req, res) => {
   const requiredFields = ["displayName"];
   // check if any required fields are missing
   const missingField = requiredFields.find(field => !(field in req.body));
@@ -60,7 +62,7 @@ router.post("/contact", (req, res) => {
   })
 });
 
-router.put("/contact/:id", (req, res) => {
+router.put("/contacts/:id", (req, res) => {
   // edit contact
 });
 
