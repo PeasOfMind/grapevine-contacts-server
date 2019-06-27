@@ -7,6 +7,13 @@ const petSchema = mongoose.Schema({
   petType: { type: String }
 });
 
+// Defines relationship of the 'relatedPerson' to the 'currentPerson'
+const relationSchema = mongoose.Schema({
+  currentPerson: { type: mongoose.Schema.Types.ObjectId, ref: "Contact" },
+  relatedPerson: { type: mongoose.Schema.Types.ObjectId, ref: "Contact" },
+  relationType: { type: String }
+});
+
 const contactSchema = mongoose.Schema({
   displayName: {
     type: String,
@@ -19,30 +26,21 @@ const contactSchema = mongoose.Schema({
   relationships: [relationSchema]
 });
 
-const Contact = mongoose.model("Contact", contactSchema);
-
-// Defines relationship of the 'relatedPerson' to the 'currentPerson'
-const relationSchema = mongoose.Schema({
-  currentPerson: { type: mongoose.Schema.Types.ObjectId, ref: "Contact" },
-  relatedPerson: { type: mongoose.Schema.Types.ObjectId, ref: "Contact" },
-  relationType: { type: String }
-});
-
-petSchema.methods.serialize = () => {
+petSchema.methods.serialize = function() {
   return {
     displayName: this.displayName,
     type: this.petType
-  }
-}
+  };
+};
 
-relationSchema.methods.serialize = () => {
+relationSchema.methods.serialize = function() {
   return {
     id: this.relatedPerson,
-    type: relationType 
-  }
-}
+    type: relationType
+  };
+};
 
-contactSchema.methods.serialize = () => {
+contactSchema.methods.serialize = function() {
   return {
     id: this._id,
     displayName: this.displayName,
@@ -51,9 +49,10 @@ contactSchema.methods.serialize = () => {
     location: this.location,
     pets: this.pets.map(pet => pet.serialize()),
     relationships: this.relationships.map(relation => relation.serialize())
-  }
-}
+  };
+};
 
+const Contact = mongoose.model("Contact", contactSchema);
 const Relation = mongoose.model("Relation", relationSchema);
 
-module.exports = { Contact, Relation }
+module.exports = { Contact, Relation };
