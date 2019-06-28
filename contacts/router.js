@@ -59,7 +59,7 @@ router.post("/contacts", (req, res) => {
   .catch(err => {
     console.error(err);
     res.status(500).json({error: "Contact could not be saved"})
-  })
+  });
 });
 
 router.put("/contacts/:id", (req, res) => {
@@ -67,7 +67,47 @@ router.put("/contacts/:id", (req, res) => {
 });
 
 router.post("/relation/:id", (req, res) => {
-  // add new relationship
+  const requiredFields = ["relatedPerson", "relationType"];
+  // check if any required fields are missing
+  const missingField = requiredFields.find(field => !(field in req.body));
+  if (missingField) {
+    const message = `Missing '${missingField}' in request body`;
+    console.error(message);
+    return res.status(400).send(message);
+  }
+  console.log('no missing fields')
+
+  const newRelation = {
+    currentPerson: req.params.id,
+    relatedPerson: req.body.relatedPerson,
+    relationType: req.body.relationType
+  };
+
+  let contact;
+  
+  Contact.findById(newRelation.currentPerson)
+  .then(foundContact => {
+    contact = foundContact;
+    console.log('the contact is:', contact);
+  })
+  .catch(err => {
+    console.error(err);
+    res.status(404).json({error: "Contact could not be found"})
+  })
+  .then(() => {
+    Relation.create(newRelation)
+    .then(relation => {
+      console.log('the relation is:', relation);
+      contact.relationships.push(relation);
+      contact.save();
+      res.status(204).end()
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({error: "Relation could not be saved"})
+    });
+  })
+
 });
 
 module.exports = {router};
