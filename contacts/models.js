@@ -51,6 +51,23 @@ contactSchema.methods.serialize = function() {
   };
 };
 
+petSchema.index({
+  displayName: "text",
+  petType: "text"
+});
+
+relationSchema.index({
+  relatedPerson: "text",
+  relationType: "text"
+})
+
+contactSchema.index({
+  displayName: "text",
+  title: "text",
+  company: "text",
+  location: "text"
+});
+
 const Contact = mongoose.model("Contact", contactSchema);
 
 module.exports = { Contact };
