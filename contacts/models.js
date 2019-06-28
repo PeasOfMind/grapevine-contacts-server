@@ -55,10 +55,4 @@ contactSchema.index({ "$**": "text" });
 
 const Contact = mongoose.model("Contact", contactSchema);
 
-// Contact.collection.dropIndexes(function(err, result) {
-//   if (err) {
-//       console.log('Error in dropping index!', err);
-//   }
-// });
-
 module.exports = { Contact };
