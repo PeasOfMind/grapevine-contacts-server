@@ -7,9 +7,8 @@ const petSchema = mongoose.Schema({
   petType: { type: String }
 });
 
-// Defines relationship of the 'relatedPerson' to the 'currentPerson'
+// Defines relationship of the 'relatedPerson' to the current person
 const relationSchema = mongoose.Schema({
-  currentPerson: { type: mongoose.Schema.Types.ObjectId, ref: "Contact" },
   relatedPerson: { type: mongoose.Schema.Types.ObjectId, ref: "Contact" },
   relationType: { type: String }
 });
@@ -23,7 +22,7 @@ const contactSchema = mongoose.Schema({
   company: { type: String },
   location: { type: String },
   pets: [petSchema],
-  relationships: [{ type: mongoose.Schema.Types.ObjectId, ref: "Relation" }]
+  relationships: [relationSchema]
 });
 
 petSchema.methods.serialize = function() {
@@ -48,16 +47,10 @@ contactSchema.methods.serialize = function() {
     company: this.company,
     location: this.location,
     pets: this.pets.map(pet => pet.serialize()),
-    relationships: this.relationships
+    relationships: this.relationships.map(relation => relation.serialize())
   };
 };
 
-contactSchema.pre('find', function(next){
-  this.populate('relationships', ['relatedPerson', 'relationType']);
-  next();
-});
-
 const Contact = mongoose.model("Contact", contactSchema);
-const Relation = mongoose.model("Relation", relationSchema);
 
-module.exports = { Contact, Relation };
+module.exports = { Contact };
