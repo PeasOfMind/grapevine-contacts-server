@@ -23,7 +23,7 @@ const contactSchema = mongoose.Schema({
   company: { type: String },
   location: { type: String },
   pets: [petSchema],
-  relationships: [relationSchema]
+  relationships: [{ type: mongoose.Schema.Types.ObjectId, ref: "Relation" }]
 });
 
 petSchema.methods.serialize = function() {
@@ -36,7 +36,7 @@ petSchema.methods.serialize = function() {
 relationSchema.methods.serialize = function() {
   return {
     id: this.relatedPerson,
-    type: relationType
+    type: this.relationType
   };
 };
 
@@ -48,9 +48,14 @@ contactSchema.methods.serialize = function() {
     company: this.company,
     location: this.location,
     pets: this.pets.map(pet => pet.serialize()),
-    relationships: this.relationships.map(relation => relation.serialize())
+    relationships: this.relationships
   };
 };
+
+contactSchema.pre('find', function(next){
+  this.populate('relationships', ['relatedPerson', 'relationType']);
+  next();
+});
 
 const Contact = mongoose.model("Contact", contactSchema);
 const Relation = mongoose.model("Relation", relationSchema);
